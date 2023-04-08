@@ -54,23 +54,24 @@ class ItemsController < ApplicationController
   def create
     @item = Item.new(item_params)
     @item.user = current_user
-
+  
     if @item.save
+      @item.image.blank? ?
+        openAIClient = OpenAI::Client.new
+        response = openAIClient.images.generate(
+          parameters: {
+            prompt: @item.title,
+            size: "256x256"
+          }
+        )
+        @item.image = response.dig("data", 0, "url")
+        @item.save 
+      : nil
+  
       sendEvent("item_created", { item: item_params })
       render :show
     else
       render json: { errors: @item.errors }, status: :unprocessable_entity
-    end
-
-    if @item.image.blank?
-      openAIClient = OpenAI::Client.new
-      response = openAIClient.images.generate(
-        parameters: {
-          prompt: @item.title,
-          size: "256x256"
-        }
-      )
-      @item.image = response.dig("data", 0, "url")
     end
   end
 
