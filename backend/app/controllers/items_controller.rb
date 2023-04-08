@@ -73,6 +73,7 @@ class ItemsController < ApplicationController
     else
       render json: { errors: @item.errors }, status: :unprocessable_entity
     end
+    
   end
 
   def show
